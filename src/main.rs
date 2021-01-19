@@ -23,8 +23,9 @@ struct Model {
 
 fn model(_app: &App) -> Model {
     const NUM_BOXES: u8 = 10;
-    let window_width = 640.s0;
-    let box_indexes: Vec<u8> = (1..NUM_BOXES).collect();
+    let window = _app.main_window();
+    let window_width = window.rect().w();
+    let box_indexes: Vec<u8> = (0..NUM_BOXES).collect();
     let standard_width: f32 = window_width / (NUM_BOXES as f32);
 
     Model {
@@ -39,8 +40,22 @@ fn model(_app: &App) -> Model {
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {
-    print!("boxes: {:?}", _model.boxes);
+    // print!("boxes: {:?}", _model.boxes);
 }
 fn view(_app: &App, _model: &Model, frame: Frame){
-    frame.clear(PURPLE);
+    // frame.clear(PURPLE);
+    let draw = _app.draw();
+
+    draw.background().color(PURPLE);
+
+    for b in &_model.boxes {
+        draw.ellipse()
+            .color(WHITE)
+            .w(8.0)
+            .h(8.0)
+            .x_y(b.left/4.0, 25.0);
+    }
+
+    draw.to_frame(_app, &frame).unwrap();
+
 }
