@@ -59,23 +59,47 @@ fn is_in_box (x: f32, b: &Box) -> bool {
 fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_size: f32, target_x: f32) -> Vec<Box>{
     let min_width = window_rect.w() / boxes.len() as f32;
 
-    let updated: Vec<Box> = boxes.iter().map(|b| {
-        if b.id == active_box.id {
-            let mut box_update = b.clone();
-            box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
-            box_update.target_width = clamp(target_size, min_width, target_size);
-            return box_update;
-        } else {
-            Box {
-                id: b.id,
-                width: b.width,
-                target_width: b.target_width,
-                centre: b.centre,
-                target_centre: b.target_centre,
-            }
-        }
+    let mut box_update = active_box.clone();
+    box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
+    box_update.target_width = clamp(target_size, min_width, target_size);
+
+    let left_slices = &boxes[0.. active_box.id as usize];
+    let start_right = active_box.id + 1;
+    let right_slices = &boxes[start_right as usize.. boxes.len()];
+
+    let a: &[Box] = &[box_update];
+    let updated = [left_slices, a, right_slices].concat();
+
+
+    // let updated: Vec<Box> = boxes.iter().map(|b| {
+    //     if b.id == active_box.id {
+    //         let mut box_update = b.clone();
+    //         box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
+    //         box_update.target_width = clamp(target_size, min_width, target_size);
+    //         return box_update;
+    //     } else {
+    //         if b.id < active_box.id {
+    //             let num_slices = active_box.id;
+    //             let left_width = active_box.centre / num_slices as f32;
+    //             Box {
+    //                 id: b.id,
+    //                 width: b.width,
+    //                 target_width: b.target_width,
+    //                 centre: b.centre,
+    //                 target_centre: b.target_centre,
+    //             }
+    //         } else {
+    //             Box {
+    //                 id: b.id,
+    //                 width: b.width,
+    //                 target_width: b.target_width,
+    //                 centre: b.centre,
+    //                 target_centre: b.target_centre,
+    //             }
+    //         }
+    //     }
         
-    }).collect();
+    // }).collect();
 
     return updated;
 
