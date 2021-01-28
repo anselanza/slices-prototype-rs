@@ -64,11 +64,8 @@ fn layout_boxes(boxes: &mut Vec<Box>, window_rect: Rect, target_size: f32, targe
     match active_box {
         Some(b) => {
             let target_x_relative = if target_size > min_width { target_x - target_size / 2.0 } else { b.centre };
-            // b.centre = clamp(in_x, window_rect.left(), window_rect.right());
             b.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
             b.target_width = clamp(target_size, min_width, target_size);
-            // b.left = clamp(in_x, -window_width/2.0, window_width/2.0);
-            // b.width = clamp(target_size, min_width, target_size);
         },
         _ => {}
     }
