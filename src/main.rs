@@ -18,7 +18,8 @@ fn main() {
 }
 
 struct Model {
-    boxes: Vec<Box>
+    boxes: Vec<Box>,
+    box_size: f32
 }
 
 fn model(_app: &App) -> Model {
@@ -35,12 +36,16 @@ fn model(_app: &App) -> Model {
             target_width: standard_width,
             left: (i as f32) * standard_width,
             target_left: (i as f32) * standard_width,
-        }).collect()
+        }).collect(),
+        box_size: 0.0
     }
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {
-    // print!("boxes: {:?}", _model.boxes);
+    let window_rect = _app.main_window().rect();
+    let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
+    _model.box_size = box_size;
+
 }
 fn view(_app: &App, _model: &Model, frame: Frame){
     // frame.clear(PURPLE);
@@ -61,12 +66,10 @@ fn view(_app: &App, _model: &Model, frame: Frame){
             .stroke(BLUE);
     }
 
-    let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
-
     draw.rect()
         .color(RED)
-        .w(box_size)
-        .h(box_size)
+        .w(_model.box_size)
+        .h(_model.box_size)
         .x(_app.mouse.position().x)
         .y(_app.mouse.position().y);
 
