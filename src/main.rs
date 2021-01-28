@@ -46,7 +46,7 @@ fn view(_app: &App, _model: &Model, frame: Frame){
     // frame.clear(PURPLE);
     let draw = _app.draw();
 
-    let window = _app.main_window().rect();
+    let window_rect = _app.main_window().rect();
 
     draw.background().color(PURPLE);
 
@@ -54,12 +54,21 @@ fn view(_app: &App, _model: &Model, frame: Frame){
         draw.rect()
             .color(WHITE)
             .w(b.width)
-            .h(window.h())
-            .x((window.left() + b.width/2.0) + b.left)
+            .h(window_rect.h())
+            .x((window_rect.left() + b.width/2.0) + b.left)
             .y(0.0)
             .stroke_weight(2.0)
             .stroke(BLUE);
     }
+
+    let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
+
+    draw.rect()
+        .color(RED)
+        .w(box_size)
+        .h(box_size)
+        .x(_app.mouse.position().x)
+        .y(_app.mouse.position().y);
 
     draw.to_frame(_app, &frame).unwrap();
 
