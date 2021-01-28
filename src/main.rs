@@ -46,23 +46,19 @@ fn view(_app: &App, _model: &Model, frame: Frame){
     // frame.clear(PURPLE);
     let draw = _app.draw();
 
+    let window = _app.main_window().rect();
+
     draw.background().color(PURPLE);
 
     for b in &_model.boxes {
-        // let r = geom::Rect::from_w_h(b.left, _app.main_window().rect().h());
         draw.rect()
-        .color(WHITE)
-        .w(b.width)
-        .h(_app.main_window().rect().h())
-        .x(b.left - _app.main_window().rect().w()/2.0 + b.width/2.0)
-        .y(0.0)
-        .stroke_weight(2.0)
-        .stroke(BLUE);
-        // draw.ellipse()
-        //     .color(WHITE)
-        //     .w(8.0)
-        //     .h(8.0)
-        //     .x_y(b.left/4.0, 25.0);
+            .color(WHITE)
+            .w(b.width)
+            .h(window.h())
+            .x((window.left() + b.width/2.0) + b.left)
+            .y(0.0)
+            .stroke_weight(2.0)
+            .stroke(BLUE);
     }
 
     draw.to_frame(_app, &frame).unwrap();
