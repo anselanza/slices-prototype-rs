@@ -34,17 +34,47 @@ fn model(_app: &App) -> Model {
             id: i,
             width: standard_width,
             target_width: standard_width,
-            left: (i as f32) * standard_width,
+            left: (i as f32) * standard_width - window_width/2.0 + standard_width/2.0,
             target_left: (i as f32) * standard_width,
         }).collect(),
         box_size: 0.0
     }
 }
 
+fn is_in_box (x: f32, b: &Box) -> bool {
+    x > b.left && x < (b.left + b.width)
+}
+
+fn layout_boxes(boxes: &mut Vec<Box>, window_width: f32, max_width: f32, target_x: f32) {
+    let min_width = window_width / boxes.len() as f32;
+    let active_box = boxes.into_iter().find(|b| is_in_box(target_x, b));
+
+    if target_x < 0.0 || target_x > window_width { // bail out if target out of window bounds
+        return;
+    }
+
+    // active_box is an Option, so need to get the result if it exists
+    match active_box {
+        Some(b) => {
+            let in_x = if max_width > min_width { target_x - max_width / 2.0 } else { b.left };
+            // b.target_left = clamp(in_x, 0.0, window_width);
+            // b.target_width = clamp_max(max_width, min_width);
+            // b.left = clamp(in_x, -window_width/2.0, window_width/2.0);
+            // b.width = clamp_max(max_width, min_width);
+        },
+        _ => {}
+    }
+
+    // TODO: now the boxes to the left and right (the others)
+
+}
+
 fn update(_app: &App, _model: &mut Model, _update: Update) {
     let window_rect = _app.main_window().rect();
     let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
     _model.box_size = box_size;
+
+    layout_boxes(&mut _model.boxes, window_rect.w(), box_size, _app.mouse.position().x);
 
 }
 fn view(_app: &App, _model: &Model, frame: Frame){
@@ -57,10 +87,10 @@ fn view(_app: &App, _model: &Model, frame: Frame){
 
     for b in &_model.boxes {
         draw.rect()
-            .color(WHITE)
+            .color(if is_in_box(_app.mouse.position().x, b) { GREEN } else { GREY })
             .w(b.width)
             .h(window_rect.h())
-            .x((window_rect.left() + b.width/2.0) + b.left)
+            .x(b.left)
             .y(0.0)
             .stroke_weight(2.0)
             .stroke(BLUE);
