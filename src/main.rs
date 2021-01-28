@@ -63,8 +63,9 @@ fn layout_boxes(boxes: &mut Vec<Box>, window_rect: Rect, target_size: f32, targe
     // active_box is an Option, so need to get the result if it exists
     match active_box {
         Some(b) => {
-            let in_x = if target_size > min_width { target_x - target_size / 2.0 } else { b.centre };
-            // b.target_centre = clamp(in_x, 0.0, window_width);
+            let target_x_relative = if target_size > min_width { target_x - target_size / 2.0 } else { b.centre };
+            // b.centre = clamp(in_x, window_rect.left(), window_rect.right());
+            b.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
             b.target_width = clamp(target_size, min_width, target_size);
             // b.left = clamp(in_x, -window_width/2.0, window_width/2.0);
             // b.width = clamp(target_size, min_width, target_size);
@@ -78,9 +79,18 @@ fn layout_boxes(boxes: &mut Vec<Box>, window_rect: Rect, target_size: f32, targe
 
 fn animate_boxes(boxes: &mut Vec<Box>) {
     for b in boxes {
-        let range = Range { start: b.width, end: b.target_width };
-        const LERP_FACTOR: f32 = 0.1;
-        b.width = range.lerp(LERP_FACTOR)
+        {
+            let range = Range { start: b.width, end: b.target_width };
+            const LERP_FACTOR: f32 = 0.1;
+            b.width = range.lerp(LERP_FACTOR);
+        }
+        {
+            let range = Range { start: b.centre, end: b.target_centre };
+            const LERP_FACTOR: f32 = 0.1;
+            b.centre = range.lerp(LERP_FACTOR);
+        }
+
+        
     }
 }
 
