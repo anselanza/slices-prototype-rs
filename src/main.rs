@@ -1,5 +1,7 @@
 extern crate nannou;
 use nannou::prelude::*;
+use nannou::geom::Range;
+
 
 #[derive(Debug)]
 struct Box {
@@ -63,9 +65,9 @@ fn layout_boxes(boxes: &mut Vec<Box>, window_rect: Rect, target_size: f32, targe
         Some(b) => {
             let in_x = if target_size > min_width { target_x - target_size / 2.0 } else { b.centre };
             // b.target_centre = clamp(in_x, 0.0, window_width);
-            // b.target_width = clamp_max(max_width, min_width);
+            b.target_width = clamp(target_size, min_width, target_size);
             // b.left = clamp(in_x, -window_width/2.0, window_width/2.0);
-            b.width = clamp(target_size, min_width, target_size);
+            // b.width = clamp(target_size, min_width, target_size);
         },
         _ => {}
     }
@@ -74,12 +76,21 @@ fn layout_boxes(boxes: &mut Vec<Box>, window_rect: Rect, target_size: f32, targe
 
 }
 
+fn animate_boxes(boxes: &mut Vec<Box>) {
+    for b in boxes {
+        let range = Range { start: b.width, end: b.target_width };
+        const LERP_FACTOR: f32 = 0.1;
+        b.width = range.lerp(LERP_FACTOR)
+    }
+}
+
 fn update(_app: &App, _model: &mut Model, _update: Update) {
     let window_rect = _app.main_window().rect();
     let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
     _model.box_size = box_size;
 
     layout_boxes(&mut _model.boxes, window_rect, box_size, _app.mouse.position().x);
+    animate_boxes(&mut _model.boxes);
 
 }
 fn view(_app: &App, _model: &Model, frame: Frame){
