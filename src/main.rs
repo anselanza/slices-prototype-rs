@@ -2,6 +2,10 @@ extern crate nannou;
 use nannou::prelude::*;
 use nannou::geom::Range;
 
+const LERP_FACTOR: f32 = 0.1;
+const NUM_BOXES: u8 = 10;
+
+
 #[derive(Debug)]
 struct Box {
     id: u8,
@@ -30,7 +34,6 @@ struct Model {
 }
 
 fn model(_app: &App) -> Model {
-    const NUM_BOXES: u8 = 10;
     let window = _app.main_window();
     let window_width = window.rect().w();
     let box_indexes: Vec<u8> = (0..NUM_BOXES).collect();
@@ -89,7 +92,7 @@ fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_si
             } else { // right
                 let right_start_index: i8 = active_box.id as i8 + 1;
                 let right_space_remaining = abs(window_rect.right() - active_box.right());
-                let num_boxes = boxes.len() as u8 -1 - active_box.id;
+                let num_boxes = boxes.len () as u8 -1 - active_box.id;
                 return squeeze_box_to_fit(b, active_box.right(), -right_start_index, num_boxes, right_space_remaining);
             }
         }
@@ -101,7 +104,6 @@ fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_si
 
 fn animate_boxes(boxes: &mut Vec<Box>) {
     for b in boxes {
-        const LERP_FACTOR: f32 = 0.1;
         {
             let range = Range { start: b.width, end: b.target_width };
             b.width = range.lerp(LERP_FACTOR);
@@ -117,25 +119,25 @@ fn get_active_box(boxes: &Vec<Box>, target_x: f32) -> Option<&Box> {
     boxes.into_iter().find(|&b| is_in_box(target_x, b))
 }
 
-fn update(_app: &App, _model: &mut Model, _update: Update) {
-    let window_rect = _app.main_window().rect();
-    let box_size: f32 = map_range(_app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
-    _model.box_size = box_size;
+fn update(app: &App, model: &mut Model, update: Update) {
+    let window_rect = app.main_window().rect();
+    let box_size: f32 = map_range(app.mouse.position().y, window_rect.top(), window_rect.bottom(), window_rect.w(), 0.0);
+    model.box_size = box_size;
 
-    let target_x = _app.mouse.position().x;
+    let target_x = app.mouse.position().x;
 
-    match get_active_box(&_model.boxes, target_x) {
+    match get_active_box(&model.boxes, target_x) {
         Some(active_box) => {
-         _model.boxes = layout_boxes(&_model.boxes, &active_box, window_rect, box_size, target_x);
+         model.boxes = layout_boxes(&model.boxes, &active_box, window_rect, box_size, target_x);
         },
         _ => {}
     }
-    animate_boxes(&mut _model.boxes);
+    animate_boxes(&mut model.boxes);
 
-    let s = _update.since_last.secs();
+    let s = update.since_last.secs();
     let fps = 1.0 / s;
 
-    _model.frame_rate = fps;
+    model.frame_rate = fps;
 }
 
 fn view(_app: &App, _model: &Model, frame: Frame){
