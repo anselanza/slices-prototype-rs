@@ -2,8 +2,7 @@ extern crate nannou;
 use nannou::prelude::*;
 use nannou::geom::Range;
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Box {
     id: u8,
     width: f32,
@@ -71,13 +70,14 @@ fn squeeze_box_to_fit (b: &Box, start_x: f32, offset_index: i8, count: u8, space
 
 fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_size: f32, target_x: f32) -> Vec<Box>{
     let min_width = window_rect.w() / boxes.len() as f32;
+    let max_width = window_rect.w() / 2.0;
 
     let updated: Vec<Box> = boxes.into_iter().map(|b| {
         if b.id == active_box.id {
             Box {
                 id: b.id,
                 width: b.width,
-                target_width: clamp(target_size, min_width, target_size),
+                target_width: clamp(target_size, min_width, max_width),
                 centre: b.centre,
                 target_centre: clamp(target_x, window_rect.left(), window_rect.right())
             }
@@ -132,7 +132,6 @@ fn update(_app: &App, _model: &mut Model, _update: Update) {
     }
     animate_boxes(&mut _model.boxes);
 
-    // let nanos: u32 = _update.since_last.secs()
     let s = _update.since_last.secs();
     let fps = 1.0 / s;
 
@@ -161,7 +160,7 @@ fn view(_app: &App, _model: &Model, frame: Frame){
     }
 
     draw.rect()
-        .color(RED)
+        .rgba(1.0, 0.0, 0.0, 0.5)
         .w(_model.box_size)
         .h(_model.box_size)
         .x(_app.mouse.position().x)
