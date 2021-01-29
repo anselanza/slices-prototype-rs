@@ -71,8 +71,8 @@ fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_si
         } else {
             if b.id < active_box.id { // left
                 let num_boxes = active_box.id;
-                let left_remaining = abs(active_box.left() - window_rect.left());
-                let left_width = left_remaining / num_boxes as f32;
+                let left_space_remaining = abs(active_box.left() - window_rect.left());
+                let left_width = left_space_remaining / num_boxes as f32;
                 Box {
                     id: b.id,
                     width: b.width,
@@ -81,16 +81,17 @@ fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_si
                     target_centre: window_rect.left() + b.id as f32 * left_width + left_width/2.0,
                 }
             } else { // right
-                let right_start = active_box.target_centre + active_box.target_width;
-                let right_remaining = window_rect.w() - right_start;
-                let num_boxes = boxes.len() as u8 - active_box.id;
-                let right_width = right_remaining / num_boxes as f32;
+                let right_start = active_box.right();
+                let right_start_index = active_box.id + 1;
+                let right_space_remaining = abs(window_rect.right() - active_box.right());
+                let num_boxes = boxes.len() as u8 -1 - active_box.id;
+                let right_width = right_space_remaining /   num_boxes as f32;
                 Box {
                     id: b.id,
                     width: b.width,
                     target_width: right_width,
                     centre: b.centre,
-                    target_centre: right_start + b.id as f32 * right_width,
+                    target_centre: right_start + (b.id - right_start_index) as f32 * right_width + right_width/2.0,
                 }
             }
         }
