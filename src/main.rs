@@ -26,7 +26,8 @@ fn main() {
 
 struct Model {
     boxes: Vec<Box>,
-    box_size: f32
+    box_size: f32,
+    frame_rate: f64
 }
 
 fn model(_app: &App) -> Model {
@@ -48,7 +49,8 @@ fn model(_app: &App) -> Model {
                 target_centre: centre_x,
             }
         }).collect(),
-        box_size: 0.0
+        box_size: 0.0,
+        frame_rate: 0.0
     }
 }
 
@@ -129,6 +131,12 @@ fn update(_app: &App, _model: &mut Model, _update: Update) {
         _ => {}
     }
     animate_boxes(&mut _model.boxes);
+
+    // let nanos: u32 = _update.since_last.secs()
+    let s = _update.since_last.secs();
+    let fps = 1.0 / s;
+
+    _model.frame_rate = fps;
 }
 
 fn view(_app: &App, _model: &Model, frame: Frame){
@@ -158,6 +166,11 @@ fn view(_app: &App, _model: &Model, frame: Frame){
         .h(_model.box_size)
         .x(_app.mouse.position().x)
         .y(_app.mouse.position().y);
+
+    {
+        let t = format!("{:.1} fps", _model.frame_rate);
+        draw.text(&t).x(window_rect.left()+ 32.0).y(window_rect.top() -16.0);
+    }
 
     draw.to_frame(_app, &frame).unwrap();
 
