@@ -59,60 +59,56 @@ fn is_in_box (x: f32, b: &Box) -> bool {
 fn layout_boxes(boxes: &Vec<Box>, active_box: &Box, window_rect: Rect, target_size: f32, target_x: f32) -> Vec<Box>{
     let min_width = window_rect.w() / boxes.len() as f32;
 
-    let mut box_update = active_box.clone();
-    box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
-    box_update.target_width = clamp(target_size, min_width, target_size);
+    let updated: Vec<Box> = boxes.into_iter().map(|b| {
+        if b.id == active_box.id {
+            Box {
+                id: b.id,
+                width: b.width,
+                target_width: clamp(target_size, min_width, target_size),
+                centre: b.centre,
+                target_centre: clamp(target_x, window_rect.left(), window_rect.right())
+            }
+        } else {
+            if b.id < active_box.id { // left
+                let num_boxes = active_box.id;
+                let left_remaining = abs(active_box.left() - window_rect.left());
+                let left_width = left_remaining / num_boxes as f32;
+                Box {
+                    id: b.id,
+                    width: b.width,
+                    target_width: left_width,
+                    centre: b.centre,
+                    target_centre: window_rect.left() + b.id as f32 * left_width + left_width/2.0,
+                }
+            } else { // right
+                let right_start = active_box.target_centre + active_box.target_width;
+                let right_remaining = window_rect.w() - right_start;
+                let num_boxes = boxes.len() as u8 - active_box.id;
+                let right_width = right_remaining / num_boxes as f32;
+                Box {
+                    id: b.id,
+                    width: b.width,
+                    target_width: right_width,
+                    centre: b.centre,
+                    target_centre: right_start + b.id as f32 * right_width,
+                }
+            }
+        }
+    }).collect();
 
-    let left_slices = &boxes[0.. active_box.id as usize];
-    let start_right = active_box.id + 1;
-    let right_slices = &boxes[start_right as usize.. boxes.len()];
+    // let mut box_update = active_box.clone();
+    // box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
+    // box_update.target_width = clamp(target_size, min_width, target_size);
 
-    let a: &[Box] = &[box_update];
-    let updated = [left_slices, a, right_slices].concat();
+    // let left_slices = &boxes[0.. active_box.id as usize];
+    // let start_right = active_box.id + 1;
+    // let right_slices = &boxes[start_right as usize.. boxes.len()];
 
 
-    // let updated: Vec<Box> = boxes.iter().map(|b| {
-    //     if b.id == active_box.id {
-    //         let mut box_update = b.clone();
-    //         box_update.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
-    //         box_update.target_width = clamp(target_size, min_width, target_size);
-    //         return box_update;
-    //     } else {
-    //         if b.id < active_box.id {
-    //             let num_slices = active_box.id;
-    //             let left_width = active_box.centre / num_slices as f32;
-    //             Box {
-    //                 id: b.id,
-    //                 width: b.width,
-    //                 target_width: b.target_width,
-    //                 centre: b.centre,
-    //                 target_centre: b.target_centre,
-    //             }
-    //         } else {
-    //             Box {
-    //                 id: b.id,
-    //                 width: b.width,
-    //                 target_width: b.target_width,
-    //                 centre: b.centre,
-    //                 target_centre: b.target_centre,
-    //             }
-    //         }
-    //     }
-        
-    // }).collect();
+    // let a: &[Box] = &[box_update];
+    // let updated = [left_slices, a, right_slices].concat();
 
     return updated;
-
-
-    // if target_x < window_rect.left() || target_x > window_rect.right() { // bail out if target out of window bounds
-    //     return;
-    // }
-
-    // let target_x_relative = if target_size > min_width { target_x - target_size / 2.0 } else { active_box.centre };
-    // active_box.target_centre = clamp(target_x, window_rect.left(), window_rect.right());
-    // active_box.target_width = clamp(target_size, min_width, target_size);
-
-    // TODO: now the boxes to the left and right (the others)
 
 }
 
@@ -128,9 +124,11 @@ fn animate_boxes(boxes: &mut Vec<Box>) {
             const LERP_FACTOR: f32 = 0.1;
             b.centre = range.lerp(LERP_FACTOR);
         }
-
-        
     }
+}
+
+fn get_active_box(boxes: &Vec<Box>, target_x: f32) -> Option<&Box> {
+    boxes.into_iter().find(|&b| is_in_box(target_x, b))
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {
@@ -140,12 +138,9 @@ fn update(_app: &App, _model: &mut Model, _update: Update) {
 
     let target_x = _app.mouse.position().x;
 
-    let boxes = &_model.boxes;
-    let active_box_finder = boxes.into_iter().find(|b| is_in_box(target_x, b));
-
-    match active_box_finder {
+    match get_active_box(&_model.boxes, target_x) {
         Some(active_box) => {
-         _model.boxes = layout_boxes(boxes, &active_box, window_rect, box_size, target_x);
+         _model.boxes = layout_boxes(&_model.boxes, &active_box, window_rect, box_size, target_x);
         },
         _ => {}
     }
@@ -169,6 +164,8 @@ fn view(_app: &App, _model: &Model, frame: Frame){
             .y(0.0)
             .stroke_weight(2.0)
             .stroke(BLUE);
+        let t = format!("#{}", b.id);
+        draw.text(&t).x(b.centre).y(0.0);
     }
 
     draw.rect()
